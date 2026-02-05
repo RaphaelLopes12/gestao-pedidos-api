@@ -1,4 +1,4 @@
-namespace Pedidos.Domain.Servicos.Interfaces;
+namespace Pedidos.Domain.Services.Interfaces;
 
 public interface ICalculadoraImposto
 {

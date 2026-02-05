@@ -1,6 +1,6 @@
-using Pedidos.Domain.Comum;
+using Pedidos.Domain.Common;
 
-namespace Pedidos.Domain.Entidades;
+namespace Pedidos.Domain.Entities;
 
 public sealed class ItemPedido
 {
