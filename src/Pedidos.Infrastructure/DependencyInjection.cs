@@ -1,9 +1,12 @@
+using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Pedidos.Application.Interfaces;
 using Pedidos.Domain.Services;
 using Pedidos.Domain.Services.Interfaces;
+using Pedidos.Infrastructure.Messaging;
+using Pedidos.Infrastructure.Messaging.Consumers;
 using Pedidos.Infrastructure.Options;
 using Pedidos.Infrastructure.Persistence;
 using Pedidos.Infrastructure.Repositories;
@@ -33,8 +36,15 @@ public static class DependencyInjection
         services.Configure<FeatureFlagOptions>(
             configuration.GetSection(FeatureFlagOptions.SectionName));
 
+        // RabbitMQ Options
+        services.Configure<RabbitMqOptions>(
+            configuration.GetSection(RabbitMqOptions.SectionName));
+
         // Repositórios
         services.AddScoped<IRepositorioPedido, RepositorioPedido>();
+
+        // Publicador de Eventos
+        services.AddScoped<IPublicadorEventos, PublicadorEventosRabbitMq>();
 
         // Calculadora de Imposto (Strategy Pattern com Feature Flag)
         services.AddScoped<ICalculadoraImposto>(sp =>
@@ -46,6 +56,27 @@ public static class DependencyInjection
             return featureFlags.UsarReformaTributaria
                 ? new CalculadoraImpostoReforma()
                 : new CalculadoraImpostoAtual();
+        });
+
+        // MassTransit com RabbitMQ
+        var rabbitMqOptions = configuration
+            .GetSection(RabbitMqOptions.SectionName)
+            .Get<RabbitMqOptions>() ?? new RabbitMqOptions();
+
+        services.AddMassTransit(busConfig =>
+        {
+            busConfig.AddConsumer<ProcessarPedidoConsumer>();
+
+            busConfig.UsingRabbitMq((context, cfg) =>
+            {
+                cfg.Host(rabbitMqOptions.Host, rabbitMqOptions.Port, "/", h =>
+                {
+                    h.Username(rabbitMqOptions.Username);
+                    h.Password(rabbitMqOptions.Password);
+                });
+
+                cfg.ConfigureEndpoints(context);
+            });
         });
 
         return services;
