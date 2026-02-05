@@ -42,10 +42,10 @@ public class CriarPedidosLoteHandlerTests
             CriarPedidoRequestValido(1),
             CriarPedidoRequestValido(2)
         ]);
-        _repositorio.ObterPorPedidoExternoIdAsync(Arg.Any<int>(), Arg.Any<CancellationToken>())
-            .Returns((Pedido?)null);
-        _repositorio.AdicionarAsync(Arg.Any<Pedido>(), Arg.Any<CancellationToken>())
-            .Returns(1, 2);
+        _repositorio.ObterPedidoIdsExistentesAsync(Arg.Any<IEnumerable<int>>(), Arg.Any<CancellationToken>())
+            .Returns(new HashSet<int>());
+        _repositorio.AdicionarEmLoteAsync(Arg.Any<IEnumerable<Pedido>>(), Arg.Any<CancellationToken>())
+            .Returns([1, 2]);
 
         var resultado = await _handler.Handle(command, CancellationToken.None);
 
@@ -57,17 +57,14 @@ public class CriarPedidosLoteHandlerTests
     [Fact]
     public async Task Handle_ComPedidoDuplicado_DeveCriarApenasNovos()
     {
-        var pedidoExistente = Pedido.Criar(1, 100, [ItemPedido.Criar(1, 1, 100m).Valor!]).Valor!;
         var command = new CriarPedidosLoteCommand([
             CriarPedidoRequestValido(1),
             CriarPedidoRequestValido(2)
         ]);
-        _repositorio.ObterPorPedidoExternoIdAsync(1, Arg.Any<CancellationToken>())
-            .Returns(pedidoExistente);
-        _repositorio.ObterPorPedidoExternoIdAsync(2, Arg.Any<CancellationToken>())
-            .Returns((Pedido?)null);
-        _repositorio.AdicionarAsync(Arg.Any<Pedido>(), Arg.Any<CancellationToken>())
-            .Returns(2);
+        _repositorio.ObterPedidoIdsExistentesAsync(Arg.Any<IEnumerable<int>>(), Arg.Any<CancellationToken>())
+            .Returns(new HashSet<int> { 1 });
+        _repositorio.AdicionarEmLoteAsync(Arg.Any<IEnumerable<Pedido>>(), Arg.Any<CancellationToken>())
+            .Returns([2]);
 
         var resultado = await _handler.Handle(command, CancellationToken.None);
 
@@ -78,10 +75,9 @@ public class CriarPedidosLoteHandlerTests
     [Fact]
     public async Task Handle_ComTodosDuplicados_DeveRetornarFalha()
     {
-        var pedidoExistente = Pedido.Criar(1, 100, [ItemPedido.Criar(1, 1, 100m).Valor!]).Valor!;
         var command = new CriarPedidosLoteCommand([CriarPedidoRequestValido(1)]);
-        _repositorio.ObterPorPedidoExternoIdAsync(1, Arg.Any<CancellationToken>())
-            .Returns(pedidoExistente);
+        _repositorio.ObterPedidoIdsExistentesAsync(Arg.Any<IEnumerable<int>>(), Arg.Any<CancellationToken>())
+            .Returns(new HashSet<int> { 1 });
 
         var resultado = await _handler.Handle(command, CancellationToken.None);
 
@@ -96,10 +92,10 @@ public class CriarPedidosLoteHandlerTests
             CriarPedidoRequestValido(1),
             CriarPedidoRequestValido(2)
         ]);
-        _repositorio.ObterPorPedidoExternoIdAsync(Arg.Any<int>(), Arg.Any<CancellationToken>())
-            .Returns((Pedido?)null);
-        _repositorio.AdicionarAsync(Arg.Any<Pedido>(), Arg.Any<CancellationToken>())
-            .Returns(1, 2);
+        _repositorio.ObterPedidoIdsExistentesAsync(Arg.Any<IEnumerable<int>>(), Arg.Any<CancellationToken>())
+            .Returns(new HashSet<int>());
+        _repositorio.AdicionarEmLoteAsync(Arg.Any<IEnumerable<Pedido>>(), Arg.Any<CancellationToken>())
+            .Returns([1, 2]);
 
         await _handler.Handle(command, CancellationToken.None);
 
@@ -120,10 +116,10 @@ public class CriarPedidosLoteHandlerTests
             pedidoComItemInvalido,
             CriarPedidoRequestValido(2)
         ]);
-        _repositorio.ObterPorPedidoExternoIdAsync(Arg.Any<int>(), Arg.Any<CancellationToken>())
-            .Returns((Pedido?)null);
-        _repositorio.AdicionarAsync(Arg.Any<Pedido>(), Arg.Any<CancellationToken>())
-            .Returns(2);
+        _repositorio.ObterPedidoIdsExistentesAsync(Arg.Any<IEnumerable<int>>(), Arg.Any<CancellationToken>())
+            .Returns(new HashSet<int>());
+        _repositorio.AdicionarEmLoteAsync(Arg.Any<IEnumerable<Pedido>>(), Arg.Any<CancellationToken>())
+            .Returns([2]);
 
         var resultado = await _handler.Handle(command, CancellationToken.None);
 
@@ -135,10 +131,10 @@ public class CriarPedidosLoteHandlerTests
     public async Task Handle_DeveRetornarLoteIdUnico()
     {
         var command = new CriarPedidosLoteCommand([CriarPedidoRequestValido(1)]);
-        _repositorio.ObterPorPedidoExternoIdAsync(Arg.Any<int>(), Arg.Any<CancellationToken>())
-            .Returns((Pedido?)null);
-        _repositorio.AdicionarAsync(Arg.Any<Pedido>(), Arg.Any<CancellationToken>())
-            .Returns(1);
+        _repositorio.ObterPedidoIdsExistentesAsync(Arg.Any<IEnumerable<int>>(), Arg.Any<CancellationToken>())
+            .Returns(new HashSet<int>());
+        _repositorio.AdicionarEmLoteAsync(Arg.Any<IEnumerable<Pedido>>(), Arg.Any<CancellationToken>())
+            .Returns([1]);
 
         var resultado = await _handler.Handle(command, CancellationToken.None);
 

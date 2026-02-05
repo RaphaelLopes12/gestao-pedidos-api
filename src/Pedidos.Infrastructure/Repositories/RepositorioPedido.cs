@@ -67,4 +67,37 @@ public sealed class RepositorioPedido : IRepositorioPedido
         _context.Pedidos.Update(pedido);
         await _context.SaveChangesAsync(cancellationToken);
     }
+
+    public async Task<HashSet<int>> ObterPedidoIdsExistentesAsync(
+        IEnumerable<int> pedidoExternoIds,
+        CancellationToken cancellationToken = default)
+    {
+        var idsList = pedidoExternoIds.ToList();
+
+        if (idsList.Count == 0)
+            return new HashSet<int>();
+
+        var existentes = await _context.Pedidos
+            .AsNoTracking()
+            .Where(p => idsList.Contains(p.PedidoExternoId))
+            .Select(p => p.PedidoExternoId)
+            .ToListAsync(cancellationToken);
+
+        return existentes.ToHashSet();
+    }
+
+    public async Task<List<int>> AdicionarEmLoteAsync(
+        IEnumerable<Pedido> pedidos,
+        CancellationToken cancellationToken = default)
+    {
+        var pedidosList = pedidos.ToList();
+
+        if (pedidosList.Count == 0)
+            return new List<int>();
+
+        await _context.Pedidos.AddRangeAsync(pedidosList, cancellationToken);
+        await _context.SaveChangesAsync(cancellationToken);
+
+        return pedidosList.Select(p => p.Id).ToList();
+    }
 }
