@@ -1,6 +1,144 @@
-@Pedidos.Api_HostAddress = http://localhost:5298
+@baseUrl = http://localhost:5298
+@apiVersion = v1
 
-GET {{Pedidos.Api_HostAddress}}/weatherforecast/
+### Health Check
+GET {{baseUrl}}/health
 Accept: application/json
+
+###
+
+### Criar Pedido (Síncrono - calcula imposto na hora)
+POST {{baseUrl}}/api/{{apiVersion}}/pedidos
+Content-Type: application/json
+
+{
+  "pedidoExternoId": 12345,
+  "clienteId": 100,
+  "itens": [
+    {
+      "produtoId": 1,
+      "quantidade": 2,
+      "valorUnitario": 50.00
+    },
+    {
+      "produtoId": 2,
+      "quantidade": 1,
+      "valorUnitario": 150.00
+    }
+  ]
+}
+
+###
+
+### Criar Pedido - Teste Duplicidade (deve retornar 409)
+POST {{baseUrl}}/api/{{apiVersion}}/pedidos
+Content-Type: application/json
+
+{
+  "pedidoExternoId": 12345,
+  "clienteId": 100,
+  "itens": [
+    {
+      "produtoId": 1,
+      "quantidade": 1,
+      "valorUnitario": 100.00
+    }
+  ]
+}
+
+###
+
+### Criar Pedido - Validação Inválida (deve retornar 400)
+POST {{baseUrl}}/api/{{apiVersion}}/pedidos
+Content-Type: application/json
+
+{
+  "pedidoExternoId": 0,
+  "clienteId": -1,
+  "itens": []
+}
+
+###
+
+### Obter Pedido por ID
+GET {{baseUrl}}/api/{{apiVersion}}/pedidos/1
+Accept: application/json
+
+###
+
+### Obter Pedido Inexistente (deve retornar 404)
+GET {{baseUrl}}/api/{{apiVersion}}/pedidos/99999
+Accept: application/json
+
+###
+
+### Listar Todos os Pedidos (paginado)
+GET {{baseUrl}}/api/{{apiVersion}}/pedidos?pagina=1&tamanhoPagina=20
+Accept: application/json
+
+###
+
+### Listar Pedidos por Status (Criado = 1, Processado = 2, Enviado = 3, Erro = 4)
+GET {{baseUrl}}/api/{{apiVersion}}/pedidos?status=2&pagina=1&tamanhoPagina=10
+Accept: application/json
+
+###
+
+### Criar Pedidos em Lote (Assíncrono - retorna 202 Accepted)
+POST {{baseUrl}}/api/{{apiVersion}}/pedidos/lote
+Content-Type: application/json
+
+{
+  "pedidos": [
+    {
+      "pedidoExternoId": 20001,
+      "clienteId": 100,
+      "itens": [
+        {
+          "produtoId": 1,
+          "quantidade": 5,
+          "valorUnitario": 25.00
+        }
+      ]
+    },
+    {
+      "pedidoExternoId": 20002,
+      "clienteId": 101,
+      "itens": [
+        {
+          "produtoId": 2,
+          "quantidade": 3,
+          "valorUnitario": 75.00
+        },
+        {
+          "produtoId": 3,
+          "quantidade": 1,
+          "valorUnitario": 200.00
+        }
+      ]
+    },
+    {
+      "pedidoExternoId": 20003,
+      "clienteId": 102,
+      "itens": [
+        {
+          "produtoId": 1,
+          "quantidade": 10,
+          "valorUnitario": 25.00
+        }
+      ]
+    }
+  ]
+}
+
+###
+
+### Criar Lote - Validação Inválida (lista vazia, deve retornar 400)
+POST {{baseUrl}}/api/{{apiVersion}}/pedidos/lote
+Content-Type: application/json
+
+{
+  "pedidos": []
+}
 
 ###
