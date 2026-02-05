@@ -21,11 +21,11 @@ public class PedidosApiTests
     public async Task CriarPedido_ComDadosValidos_DeveRetornar201()
     {
         var request = new CriarPedidoRequest(
-            PedidoExternoId: 12345,
+            PedidoId: 12345,
             ClienteId: 100,
             Itens:
             [
-                new ItemPedidoRequest(ProdutoId: 1, Quantidade: 2, ValorUnitario: 50m)
+                new ItemPedidoRequest(ProdutoId: 1, Quantidade: 2, Valor: 100m)
             ]);
 
         var response = await _client.PostAsJsonAsync("/api/v1/pedidos", request);
@@ -34,17 +34,15 @@ public class PedidosApiTests
 
         var resultado = await response.Content.ReadFromJsonAsync<CriarPedidoResponse>();
         resultado.Should().NotBeNull();
-        resultado!.PedidoExternoId.Should().Be(12345);
+        resultado!.Id.Should().BeGreaterThan(0);
         resultado.Status.Should().Be("Processado");
-        resultado.ValorTotal.Should().Be(100m);
-        resultado.Imposto.Should().Be(30m);
     }
 
     [Fact]
-    public async Task CriarPedido_ComPedidoExternoIdDuplicado_DeveRetornar409()
+    public async Task CriarPedido_ComPedidoIdDuplicado_DeveRetornar409()
     {
         var request = new CriarPedidoRequest(
-            PedidoExternoId: 99999,
+            PedidoId: 99999,
             ClienteId: 100,
             Itens: [new ItemPedidoRequest(1, 1, 100m)]);
 
@@ -59,7 +57,7 @@ public class PedidosApiTests
     public async Task CriarPedido_SemItens_DeveRetornar400()
     {
         var request = new CriarPedidoRequest(
-            PedidoExternoId: 11111,
+            PedidoId: 11111,
             ClienteId: 100,
             Itens: []);
 
@@ -72,7 +70,7 @@ public class PedidosApiTests
     public async Task ObterPedido_ComIdExistente_DeveRetornar200()
     {
         var request = new CriarPedidoRequest(
-            PedidoExternoId: 22222,
+            PedidoId: 22222,
             ClienteId: 100,
             Itens: [new ItemPedidoRequest(1, 1, 100m)]);
 
@@ -85,7 +83,7 @@ public class PedidosApiTests
 
         var pedido = await response.Content.ReadFromJsonAsync<PedidoResponse>();
         pedido.Should().NotBeNull();
-        pedido!.PedidoExternoId.Should().Be(22222);
+        pedido!.PedidoId.Should().Be(22222);
     }
 
     [Fact]
@@ -100,7 +98,7 @@ public class PedidosApiTests
     public async Task ListarPedidos_DeveRetornar200ComPaginacao()
     {
         var request = new CriarPedidoRequest(
-            PedidoExternoId: 33333,
+            PedidoId: 33333,
             ClienteId: 100,
             Itens: [new ItemPedidoRequest(1, 1, 100m)]);
 

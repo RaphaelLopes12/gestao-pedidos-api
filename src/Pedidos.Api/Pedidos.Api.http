@@ -12,18 +12,18 @@ POST {{baseUrl}}/api/{{apiVersion}}/pedidos
 Content-Type: application/json
 
 {
-  "pedidoExternoId": 12345,
+  "pedidoId": 12345,
   "clienteId": 100,
   "itens": [
     {
       "produtoId": 1,
       "quantidade": 2,
-      "valorUnitario": 50.00
+      "valor": 100.00
     },
     {
       "produtoId": 2,
       "quantidade": 1,
-      "valorUnitario": 150.00
+      "valor": 150.00
     }
   ]
 }
@@ -35,13 +35,13 @@ POST {{baseUrl}}/api/{{apiVersion}}/pedidos
 Content-Type: application/json
 
 {
-  "pedidoExternoId": 12345,
+  "pedidoId": 12345,
   "clienteId": 100,
   "itens": [
     {
       "produtoId": 1,
       "quantidade": 1,
-      "valorUnitario": 100.00
+      "valor": 100.00
     }
   ]
 }
@@ -53,7 +53,7 @@ POST {{baseUrl}}/api/{{apiVersion}}/pedidos
 Content-Type: application/json
 
 {
-  "pedidoExternoId": 0,
+  "pedidoId": 0,
   "clienteId": -1,
   "itens": []
 }
@@ -91,40 +91,40 @@ Content-Type: application/json
 {
   "pedidos": [
     {
-      "pedidoExternoId": 20001,
+      "pedidoId": 20001,
       "clienteId": 100,
       "itens": [
         {
           "produtoId": 1,
           "quantidade": 5,
-          "valorUnitario": 25.00
+          "valor": 125.00
         }
       ]
     },
     {
-      "pedidoExternoId": 20002,
+      "pedidoId": 20002,
       "clienteId": 101,
       "itens": [
         {
           "produtoId": 2,
           "quantidade": 3,
-          "valorUnitario": 75.00
+          "valor": 225.00
         },
         {
           "produtoId": 3,
           "quantidade": 1,
-          "valorUnitario": 200.00
+          "valor": 200.00
         }
       ]
     },
     {
-      "pedidoExternoId": 20003,
+      "pedidoId": 20003,
       "clienteId": 102,
       "itens": [
         {
           "produtoId": 1,
           "quantidade": 10,
-          "valorUnitario": 25.00
+          "valor": 250.00
         }
       ]
     }

@@ -17,9 +17,9 @@ public sealed class CriarPedidosLoteCommandValidator : AbstractValidator<CriarPe
 
         RuleForEach(x => x.Pedidos).ChildRules(pedido =>
         {
-            pedido.RuleFor(p => p.PedidoExternoId)
+            pedido.RuleFor(p => p.PedidoId)
                 .GreaterThan(0)
-                .WithMessage("PedidoExternoId deve ser maior que zero");
+                .WithMessage("PedidoId deve ser maior que zero");
 
             pedido.RuleFor(p => p.ClienteId)
                 .GreaterThan(0)

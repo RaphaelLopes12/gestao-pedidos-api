@@ -7,7 +7,7 @@ services:
     ports:
       - "5000:8080"
     environment:
-      - ASPNETCORE_ENVIRONMENT=Docker
+      - ASPNETCORE_ENVIRONMENT=Development
       - ConnectionStrings__DefaultConnection=Server=sqlserver;Database=PedidosDb;User Id=sa;Password=SuaSenhaForte@123;TrustServerCertificate=True
       - RabbitMq__Host=rabbitmq
       - RabbitMq__Username=guest

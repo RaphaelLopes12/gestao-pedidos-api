@@ -24,13 +24,11 @@ public sealed class ItemPedidoConfiguration : IEntityTypeConfiguration<ItemPedid
         builder.Property(i => i.Quantidade)
             .IsRequired();
 
-        builder.Property(i => i.ValorUnitario)
+        builder.Property(i => i.Valor)
             .HasPrecision(18, 2)
             .IsRequired();
 
         builder.HasIndex(i => i.PedidoId)
             .HasDatabaseName("IX_ItensPedido_PedidoId");
-
-        builder.Ignore(i => i.ValorTotal);
     }
 }

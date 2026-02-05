@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Pedidos.Infrastructure.Persistence;
 
@@ -11,9 +12,11 @@ using Pedidos.Infrastructure.Persistence;
 namespace Pedidos.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(PedidosDbContext))]
-    partial class PedidosDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260205184924_RenameValorUnitarioToValor")]
+    partial class RenameValorUnitarioToValor
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

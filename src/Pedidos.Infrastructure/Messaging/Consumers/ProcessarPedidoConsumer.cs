@@ -57,11 +57,9 @@ public sealed class ProcessarPedidoConsumer : IConsumer<ProcessarPedidoLoteEvent
                 return;
             }
 
-            // Calcula imposto
             var imposto = _calculadoraImposto.Calcular(pedido.ValorTotal);
             pedido.CalcularImposto(imposto);
 
-            // Marca como processado
             pedido.MarcarComoProcessado();
             await _repositorio.AtualizarAsync(pedido, context.CancellationToken);
 
@@ -70,7 +68,6 @@ public sealed class ProcessarPedidoConsumer : IConsumer<ProcessarPedidoLoteEvent
                 pedidoId,
                 imposto);
 
-            // Publica para Sistema B
             var evento = new PedidoProcessadoEvento(
                 pedido.Id,
                 pedido.PedidoExternoId,
@@ -92,7 +89,6 @@ public sealed class ProcessarPedidoConsumer : IConsumer<ProcessarPedidoLoteEvent
                 "Erro ao processar pedido. PedidoId: {PedidoId}",
                 pedidoId);
 
-            // Tenta marcar como erro
             try
             {
                 var pedido = await _repositorio.ObterPorIdAsync(pedidoId, context.CancellationToken);
@@ -104,10 +100,9 @@ public sealed class ProcessarPedidoConsumer : IConsumer<ProcessarPedidoLoteEvent
             }
             catch
             {
-                // Ignora erro ao marcar como erro
             }
 
-            throw; // Re-throw para MassTransit fazer retry
+            throw;
         }
     }
 }

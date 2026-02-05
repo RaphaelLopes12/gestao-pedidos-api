@@ -93,12 +93,12 @@ public class PedidoTests
     }
 
     [Fact]
-    public void ValorTotal_DeveSerSomaDosItens()
+    public void ValorTotal_DeveSerSomaDosValoresDosItens()
     {
-        var itens = CriarItensValidos();
+        var itens = CriarItensValidos(); // item1: valor=100, item2: valor=50
         var pedido = Pedido.Criar(12345, 100, itens).Valor!;
 
-        pedido.ValorTotal.Should().Be(250m);
+        pedido.ValorTotal.Should().Be(150m); // 100 + 50 = 150
     }
 
     [Fact]
@@ -107,9 +107,9 @@ public class PedidoTests
         var itens = CriarItensValidos();
         var pedido = Pedido.Criar(12345, 100, itens).Valor!;
 
-        pedido.CalcularImposto(75m);
+        pedido.CalcularImposto(45m); // 150 * 0.3 = 45
 
-        pedido.Imposto.Should().Be(75m);
+        pedido.Imposto.Should().Be(45m);
     }
 
     [Fact]

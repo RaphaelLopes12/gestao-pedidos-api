@@ -26,10 +26,10 @@ public class CriarPedidosLoteHandlerTests
         _handler = new CriarPedidosLoteHandler(_repositorio, _publishEndpoint, _logger);
     }
 
-    private static CriarPedidoRequest CriarPedidoRequestValido(int pedidoExternoId = 1)
+    private static CriarPedidoRequest CriarPedidoRequestValido(int pedidoId = 1)
     {
         return new CriarPedidoRequest(
-            PedidoExternoId: pedidoExternoId,
+            PedidoId: pedidoId,
             ClienteId: 100,
             Itens: [new ItemPedidoRequest(1, 2, 100m)]
         );
@@ -112,7 +112,7 @@ public class CriarPedidosLoteHandlerTests
     public async Task Handle_ComItemInvalido_DeveIgnorarPedidoComErro()
     {
         var pedidoComItemInvalido = new CriarPedidoRequest(
-            PedidoExternoId: 1,
+            PedidoId: 1,
             ClienteId: 100,
             Itens: [new ItemPedidoRequest(0, 2, 100m)]
         );

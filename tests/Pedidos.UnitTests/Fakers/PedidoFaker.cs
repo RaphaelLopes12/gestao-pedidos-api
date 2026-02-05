@@ -13,12 +13,12 @@ public static class PedidoFaker
         .CustomInstantiator(f => new ItemPedidoRequest(
             ProdutoId: f.Random.Int(1, 1000),
             Quantidade: f.Random.Int(1, 10),
-            ValorUnitario: f.Finance.Amount(10, 500)
+            Valor: f.Finance.Amount(10, 500)
         ));
 
     public static Faker<CriarPedidoCommand> CriarPedidoCommandFaker => new Faker<CriarPedidoCommand>("pt_BR")
         .CustomInstantiator(f => new CriarPedidoCommand(
-            PedidoExternoId: f.Random.Int(1, 99999),
+            PedidoId: f.Random.Int(1, 99999),
             ClienteId: f.Random.Int(1, 1000),
             Itens: ItemPedidoRequestFaker.Generate(f.Random.Int(1, 5))
         ));
@@ -28,10 +28,10 @@ public static class PedidoFaker
         return CriarPedidoCommandFaker.Generate();
     }
 
-    public static CriarPedidoCommand GerarCommandComPedidoExternoId(int pedidoExternoId)
+    public static CriarPedidoCommand GerarCommandComPedidoId(int pedidoId)
     {
         return CriarPedidoCommandFaker
-            .RuleFor(c => c.PedidoExternoId, pedidoExternoId)
+            .RuleFor(c => c.PedidoId, pedidoId)
             .Generate();
     }
 

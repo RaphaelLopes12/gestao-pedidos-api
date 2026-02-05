@@ -38,17 +38,12 @@ public sealed class ListarPedidosHandler : IRequestHandler<ListarPedidosQuery, P
             p.Id,
             p.PedidoExternoId,
             p.ClienteId,
-            p.Status.ToString(),
-            p.ValorTotal,
             p.Imposto,
-            p.CriadoEm,
-            p.ProcessadoEm,
             p.Itens.Select(i => new ItemPedidoResponse(
-                i.Id,
                 i.ProdutoId,
                 i.Quantidade,
-                i.ValorUnitario,
-                i.ValorTotal)).ToList()
+                i.Valor)).ToList(),
+            p.Status.ToString()
         )).ToList();
 
         var totalPaginas = (int)Math.Ceiling((double)total / query.TamanhoPagina);

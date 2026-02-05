@@ -42,36 +42,36 @@ public sealed class CriarPedidosLoteHandler : IRequestHandler<CriarPedidosLoteCo
         foreach (var pedidoRequest in command.Pedidos)
         {
             var pedidoExistente = await _repositorio.ObterPorPedidoExternoIdAsync(
-                pedidoRequest.PedidoExternoId,
+                pedidoRequest.PedidoId,
                 cancellationToken);
 
             if (pedidoExistente is not null)
             {
-                erros.Add($"PedidoExternoId {pedidoRequest.PedidoExternoId} já existe");
+                erros.Add($"PedidoId {pedidoRequest.PedidoId} já existe");
                 continue;
             }
 
             var itensResultados = pedidoRequest.Itens
-                .Select(i => ItemPedido.Criar(i.ProdutoId, i.Quantidade, i.ValorUnitario))
+                .Select(i => ItemPedido.Criar(i.ProdutoId, i.Quantidade, i.Valor))
                 .ToList();
 
             var itemComErro = itensResultados.FirstOrDefault(r => r.Falhou);
             if (itemComErro is not null)
             {
-                erros.Add($"PedidoExternoId {pedidoRequest.PedidoExternoId}: {itemComErro.Erro}");
+                erros.Add($"PedidoId {pedidoRequest.PedidoId}: {itemComErro.Erro}");
                 continue;
             }
 
             var itens = itensResultados.Select(r => r.Valor!).ToList();
 
             var pedidoResultado = Pedido.Criar(
-                pedidoRequest.PedidoExternoId,
+                pedidoRequest.PedidoId,
                 pedidoRequest.ClienteId,
                 itens);
 
             if (pedidoResultado.Falhou)
             {
-                erros.Add($"PedidoExternoId {pedidoRequest.PedidoExternoId}: {pedidoResultado.Erro}");
+                erros.Add($"PedidoId {pedidoRequest.PedidoId}: {pedidoResultado.Erro}");
                 continue;
             }
 
@@ -80,17 +80,27 @@ public sealed class CriarPedidosLoteHandler : IRequestHandler<CriarPedidosLoteCo
             pedidosCriados.Add(pedidoId);
 
             _logger.LogInformation(
-                "Pedido do lote criado. LoteId: {LoteId}, PedidoId: {PedidoId}, PedidoExternoId: {PedidoExternoId}",
+                "Pedido do lote criado. LoteId: {LoteId}, Id: {Id}, PedidoId: {PedidoId}",
                 loteId,
                 pedidoId,
-                pedidoRequest.PedidoExternoId);
+                pedidoRequest.PedidoId);
         }
 
-        foreach (var pedidoId in pedidosCriados)
+        try
         {
-            await _publishEndpoint.Publish(
-                new ProcessarPedidoLoteEvento(pedidoId),
-                cancellationToken);
+            foreach (var pedidoId in pedidosCriados)
+            {
+                await _publishEndpoint.Publish(
+                    new ProcessarPedidoLoteEvento(pedidoId),
+                    cancellationToken);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(
+                ex,
+                "Falha ao publicar eventos para processamento. Os pedidos foram criados. LoteId: {LoteId}",
+                loteId);
         }
 
         _logger.LogInformation(

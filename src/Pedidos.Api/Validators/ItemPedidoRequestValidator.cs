@@ -15,8 +15,8 @@ public sealed class ItemPedidoRequestValidator : AbstractValidator<ItemPedidoReq
             .GreaterThan(0)
             .WithMessage("Quantidade deve ser maior que zero");
 
-        RuleFor(x => x.ValorUnitario)
+        RuleFor(x => x.Valor)
             .GreaterThan(0)
-            .WithMessage("Valor unitário deve ser maior que zero");
+            .WithMessage("Valor deve ser maior que zero");
     }
 }

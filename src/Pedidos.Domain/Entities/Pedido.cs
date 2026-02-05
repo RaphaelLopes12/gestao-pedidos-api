@@ -16,7 +16,7 @@ public sealed class Pedido
     private readonly List<ItemPedido> _itens = [];
     public IReadOnlyCollection<ItemPedido> Itens => _itens.AsReadOnly();
 
-    public decimal ValorTotal => _itens.Sum(i => i.ValorTotal);
+    public decimal ValorTotal => _itens.Sum(i => i.Valor);
 
     private Pedido() { }
 

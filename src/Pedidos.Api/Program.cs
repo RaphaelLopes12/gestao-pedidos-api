@@ -1,10 +1,12 @@
 using Asp.Versioning;
 using FluentValidation;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using Pedidos.Api.Middlewares;
 using Pedidos.Api.Validators;
 using Pedidos.Application.Commands.CriarPedido;
 using Pedidos.Infrastructure;
+using Pedidos.Infrastructure.Persistence;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -54,6 +56,13 @@ builder.Services.AddSwaggerGen(options =>
 builder.Services.AddHealthChecks();
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<PedidosDbContext>();
+    db.Database.Migrate();
+    Log.Information("Migrations aplicadas com sucesso");
+}
 
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 
