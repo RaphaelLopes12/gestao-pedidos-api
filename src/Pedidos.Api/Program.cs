@@ -1,3 +1,5 @@
+using Pedidos.Application.Commands.CriarPedido;
+using Pedidos.Infrastructure;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -5,6 +7,13 @@ var builder = WebApplication.CreateBuilder(args);
 // Configuração do Serilog
 builder.Host.UseSerilog((context, configuration) =>
     configuration.ReadFrom.Configuration(context.Configuration));
+
+// Adiciona Infrastructure (DbContext, Repositórios, Feature Flags)
+builder.Services.AddInfrastructure(builder.Configuration);
+
+// Adiciona MediatR
+builder.Services.AddMediatR(cfg =>
+    cfg.RegisterServicesFromAssembly(typeof(CriarPedidoCommand).Assembly));
 
 // Adiciona serviços
 builder.Services.AddControllers();
