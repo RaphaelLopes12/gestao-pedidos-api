@@ -1,29 +1,62 @@
+using Asp.Versioning;
+using FluentValidation;
+using Microsoft.OpenApi.Models;
+using Pedidos.Api.Middlewares;
+using Pedidos.Api.Validators;
 using Pedidos.Application.Commands.CriarPedido;
 using Pedidos.Infrastructure;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Configuração do Serilog
 builder.Host.UseSerilog((context, configuration) =>
     configuration.ReadFrom.Configuration(context.Configuration));
 
-// Adiciona Infrastructure (DbContext, Repositórios, Feature Flags)
 builder.Services.AddInfrastructure(builder.Configuration);
 
-// Adiciona MediatR
 builder.Services.AddMediatR(cfg =>
     cfg.RegisterServicesFromAssembly(typeof(CriarPedidoCommand).Assembly));
 
-// Adiciona serviços
+builder.Services.AddValidatorsFromAssemblyContaining<CriarPedidoCommandValidator>();
+
+builder.Services.AddApiVersioning(options =>
+{
+    options.DefaultApiVersion = new ApiVersion(1, 0);
+    options.AssumeDefaultVersionWhenUnspecified = true;
+    options.ReportApiVersions = true;
+    options.ApiVersionReader = ApiVersionReader.Combine(
+        new UrlSegmentApiVersionReader(),
+        new HeaderApiVersionReader("X-Api-Version"));
+}).AddApiExplorer(options =>
+{
+    options.GroupNameFormat = "'v'VVV";
+    options.SubstituteApiVersionInUrl = true;
+});
+
 builder.Services.AddControllers();
+
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(options =>
+{
+    options.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Title = "Gestão de Pedidos API",
+        Version = "v1",
+        Description = "API para gerenciamento de pedidos com cálculo de impostos",
+        Contact = new OpenApiContact
+        {
+            Name = "Raphael Ferreira Lopes",
+            Email = "Raphaellopes228@gmail.com"
+        }
+    });
+});
+
 builder.Services.AddHealthChecks();
 
 var app = builder.Build();
 
-// Pipeline HTTP
+app.UseMiddleware<ExceptionHandlingMiddleware>();
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
