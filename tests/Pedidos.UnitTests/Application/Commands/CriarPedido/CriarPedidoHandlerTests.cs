@@ -1,3 +1,4 @@
+using Bogus;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
@@ -6,7 +7,9 @@ using Pedidos.Application.DTOs.Requests;
 using Pedidos.Application.Events;
 using Pedidos.Application.Interfaces;
 using Pedidos.Domain.Entities;
+using Pedidos.Domain.Enums;
 using Pedidos.Domain.Services.Interfaces;
+using Pedidos.UnitTests.Fakers;
 
 namespace Pedidos.UnitTests.Application.Commands.CriarPedido;
 
@@ -17,6 +20,7 @@ public class CriarPedidoHandlerTests
     private readonly IPublicadorEventos _publicador;
     private readonly ILogger<CriarPedidoHandler> _logger;
     private readonly CriarPedidoHandler _handler;
+    private readonly Faker _faker;
 
     public CriarPedidoHandlerTests()
     {
@@ -24,23 +28,15 @@ public class CriarPedidoHandlerTests
         _calculadora = Substitute.For<ICalculadoraImposto>();
         _publicador = Substitute.For<IPublicadorEventos>();
         _logger = Substitute.For<ILogger<CriarPedidoHandler>>();
+        _faker = new Faker("pt_BR");
 
         _handler = new CriarPedidoHandler(_repositorio, _calculadora, _publicador, _logger);
-    }
-
-    private static CriarPedidoCommand CriarCommandValido()
-    {
-        return new CriarPedidoCommand(
-            PedidoExternoId: 12345,
-            ClienteId: 100,
-            Itens: [new ItemPedidoRequest(1, 2, 100m)]
-        );
     }
 
     [Fact]
     public async Task Handle_ComDadosValidos_DeveRetornarSucesso()
     {
-        var command = CriarCommandValido();
+        var command = PedidoFaker.GerarCommandValido();
         _repositorio.ObterPorPedidoExternoIdAsync(command.PedidoExternoId, Arg.Any<CancellationToken>())
             .Returns((Pedido?)null);
         _repositorio.AdicionarAsync(Arg.Any<Pedido>(), Arg.Any<CancellationToken>())
@@ -52,14 +48,15 @@ public class CriarPedidoHandlerTests
         resultado.Sucesso.Should().BeTrue();
         resultado.Valor.Should().NotBeNull();
         resultado.Valor!.Id.Should().Be(1);
-        resultado.Valor.PedidoExternoId.Should().Be(12345);
+        resultado.Valor.PedidoExternoId.Should().Be(command.PedidoExternoId);
     }
 
     [Fact]
     public async Task Handle_ComPedidoDuplicado_DeveRetornarFalha()
     {
-        var command = CriarCommandValido();
-        var pedidoExistente = Pedido.Criar(12345, 100, [ItemPedido.Criar(1, 1, 100m).Valor!]).Valor!;
+        var pedidoExternoId = _faker.Random.Int(1, 99999);
+        var command = PedidoFaker.GerarCommandComPedidoExternoId(pedidoExternoId);
+        var pedidoExistente = PedidoFaker.GerarPedidoComPedidoExternoId(pedidoExternoId);
         _repositorio.ObterPorPedidoExternoIdAsync(command.PedidoExternoId, Arg.Any<CancellationToken>())
             .Returns(pedidoExistente);
 
@@ -72,23 +69,30 @@ public class CriarPedidoHandlerTests
     [Fact]
     public async Task Handle_DeveCalcularImpostoCorretamente()
     {
-        var command = CriarCommandValido();
+        var command = new CriarPedidoCommand(
+            PedidoExternoId: _faker.Random.Int(1, 99999),
+            ClienteId: _faker.Random.Int(1, 1000),
+            Itens: [new ItemPedidoRequest(1, 2, 100m)]
+        );
+        var valorTotalEsperado = 200m;
+        var impostoEsperado = 60m;
+
         _repositorio.ObterPorPedidoExternoIdAsync(command.PedidoExternoId, Arg.Any<CancellationToken>())
             .Returns((Pedido?)null);
         _repositorio.AdicionarAsync(Arg.Any<Pedido>(), Arg.Any<CancellationToken>())
             .Returns(1);
-        _calculadora.Calcular(200m).Returns(60m);
+        _calculadora.Calcular(valorTotalEsperado).Returns(impostoEsperado);
 
         var resultado = await _handler.Handle(command, CancellationToken.None);
 
-        resultado.Valor!.Imposto.Should().Be(60m);
-        _calculadora.Received(1).Calcular(200m);
+        resultado.Valor!.Imposto.Should().Be(impostoEsperado);
+        _calculadora.Received(1).Calcular(valorTotalEsperado);
     }
 
     [Fact]
     public async Task Handle_DevePublicarEventoAposProcessamento()
     {
-        var command = CriarCommandValido();
+        var command = PedidoFaker.GerarCommandValido();
         _repositorio.ObterPorPedidoExternoIdAsync(command.PedidoExternoId, Arg.Any<CancellationToken>())
             .Returns((Pedido?)null);
         _repositorio.AdicionarAsync(Arg.Any<Pedido>(), Arg.Any<CancellationToken>())
@@ -98,7 +102,7 @@ public class CriarPedidoHandlerTests
         await _handler.Handle(command, CancellationToken.None);
 
         await _publicador.Received(1).PublicarPedidoProcessadoAsync(
-            Arg.Is<PedidoProcessadoEvento>(e => e.PedidoId == 1 && e.PedidoExternoId == 12345),
+            Arg.Is<PedidoProcessadoEvento>(e => e.PedidoId == 1 && e.PedidoExternoId == command.PedidoExternoId),
             Arg.Any<CancellationToken>());
     }
 
@@ -106,8 +110,8 @@ public class CriarPedidoHandlerTests
     public async Task Handle_ComItemInvalido_DeveRetornarFalha()
     {
         var command = new CriarPedidoCommand(
-            PedidoExternoId: 12345,
-            ClienteId: 100,
+            PedidoExternoId: _faker.Random.Int(1, 99999),
+            ClienteId: _faker.Random.Int(1, 1000),
             Itens: [new ItemPedidoRequest(0, 2, 100m)]
         );
         _repositorio.ObterPorPedidoExternoIdAsync(command.PedidoExternoId, Arg.Any<CancellationToken>())
@@ -122,7 +126,7 @@ public class CriarPedidoHandlerTests
     [Fact]
     public async Task Handle_DevePersistirPedidoComStatusProcessado()
     {
-        var command = CriarCommandValido();
+        var command = PedidoFaker.GerarCommandValido();
         Pedido? pedidoSalvo = null;
         _repositorio.ObterPorPedidoExternoIdAsync(command.PedidoExternoId, Arg.Any<CancellationToken>())
             .Returns((Pedido?)null);
@@ -135,6 +139,6 @@ public class CriarPedidoHandlerTests
         await _handler.Handle(command, CancellationToken.None);
 
         pedidoSalvo.Should().NotBeNull();
-        pedidoSalvo!.Status.Should().Be(Pedidos.Domain.Enums.StatusPedido.Processado);
+        pedidoSalvo!.Status.Should().Be(StatusPedido.Processado);
     }
 }
