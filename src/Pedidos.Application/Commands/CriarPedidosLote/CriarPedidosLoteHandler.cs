@@ -41,7 +41,6 @@ public sealed class CriarPedidosLoteHandler : IRequestHandler<CriarPedidosLoteCo
 
         foreach (var pedidoRequest in command.Pedidos)
         {
-            // Verifica duplicidade
             var pedidoExistente = await _repositorio.ObterPorPedidoExternoIdAsync(
                 pedidoRequest.PedidoExternoId,
                 cancellationToken);
@@ -52,7 +51,6 @@ public sealed class CriarPedidosLoteHandler : IRequestHandler<CriarPedidosLoteCo
                 continue;
             }
 
-            // Cria itens
             var itensResultados = pedidoRequest.Itens
                 .Select(i => ItemPedido.Criar(i.ProdutoId, i.Quantidade, i.ValorUnitario))
                 .ToList();
@@ -66,7 +64,6 @@ public sealed class CriarPedidosLoteHandler : IRequestHandler<CriarPedidosLoteCo
 
             var itens = itensResultados.Select(r => r.Valor!).ToList();
 
-            // Cria pedido (sem imposto - será calculado pelo worker)
             var pedidoResultado = Pedido.Criar(
                 pedidoRequest.PedidoExternoId,
                 pedidoRequest.ClienteId,
@@ -89,7 +86,6 @@ public sealed class CriarPedidosLoteHandler : IRequestHandler<CriarPedidosLoteCo
                 pedidoRequest.PedidoExternoId);
         }
 
-        // Enfileira pedidos para processamento assíncrono
         foreach (var pedidoId in pedidosCriados)
         {
             await _publishEndpoint.Publish(
