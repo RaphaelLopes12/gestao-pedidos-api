@@ -91,3 +91,6 @@ appsettings.Local.json
 # Logs
 logs/
 *.log
+
+# Local docs (plano de execucao)
+docs/
