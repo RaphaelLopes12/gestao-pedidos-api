@@ -1,7 +1,7 @@
-using Pedidos.Domain.Constantes;
-using Pedidos.Domain.Servicos.Interfaces;
+using Pedidos.Domain.Constants;
+using Pedidos.Domain.Services.Interfaces;
 
-namespace Pedidos.Domain.Servicos;
+namespace Pedidos.Domain.Services;
 
 public sealed class CalculadoraImpostoAtual : ICalculadoraImposto
 {

@@ -1,4 +1,4 @@
-namespace Pedidos.Domain.Comum;
+namespace Pedidos.Domain.Common;
 
 public class Resultado
 {

@@ -1,7 +1,7 @@
-using Pedidos.Domain.Comum;
+using Pedidos.Domain.Common;
 using Pedidos.Domain.Enums;
 
-namespace Pedidos.Domain.Entidades;
+namespace Pedidos.Domain.Entities;
 
 public sealed class Pedido
 {

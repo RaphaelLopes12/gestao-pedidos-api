@@ -1,4 +1,4 @@
-namespace Pedidos.Domain.Constantes;
+namespace Pedidos.Domain.Constants;
 
 public static class TaxasImposto
 {
