@@ -102,7 +102,7 @@ public class ListarPedidosHandlerTests
             new ListarPedidosQuery(null, 1, 20),
             CancellationToken.None);
 
-        resultado.Itens[0].PedidoExternoId.Should().Be(12345);
+        resultado.Itens[0].PedidoId.Should().Be(12345);
         resultado.Itens[0].Itens.Should().HaveCount(1);
     }
 }

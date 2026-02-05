@@ -38,7 +38,7 @@ public class ObterPedidoHandlerTests
 
         resultado.Sucesso.Should().BeTrue();
         resultado.Valor.Should().NotBeNull();
-        resultado.Valor!.PedidoExternoId.Should().Be(12345);
+        resultado.Valor!.PedidoId.Should().Be(12345);
         resultado.Valor.ClienteId.Should().Be(100);
     }
 
@@ -66,19 +66,20 @@ public class ObterPedidoHandlerTests
         resultado.Valor!.Itens.Should().HaveCount(1);
         resultado.Valor.Itens[0].ProdutoId.Should().Be(1);
         resultado.Valor.Itens[0].Quantidade.Should().Be(2);
-        resultado.Valor.Itens[0].ValorUnitario.Should().Be(100m);
+        resultado.Valor.Itens[0].Valor.Should().Be(100m);
     }
 
     [Fact]
-    public async Task Handle_DeveRetornarValorTotalCorreto()
+    public async Task Handle_DeveRetornarImpostoCorreto()
     {
         var pedido = CriarPedidoValido();
+        pedido.CalcularImposto(30m); // 100 * 0.3 = 30
         _repositorio.ObterPorIdAsync(1, Arg.Any<CancellationToken>())
             .Returns(pedido);
 
         var resultado = await _handler.Handle(new ObterPedidoQuery(1), CancellationToken.None);
 
-        resultado.Valor!.ValorTotal.Should().Be(200m);
+        resultado.Valor!.Imposto.Should().Be(30m);
     }
 
     [Fact]

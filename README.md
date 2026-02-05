@@ -110,13 +110,13 @@ dotnet run --project src/Pedidos.Api
 curl -X POST http://localhost:5000/api/v1/pedidos \
   -H "Content-Type: application/json" \
   -d '{
-    "pedidoExternoId": 12345,
+    "pedidoId": 12345,
     "clienteId": 100,
     "itens": [
       {
         "produtoId": 1,
         "quantidade": 2,
-        "valorUnitario": 50.00
+        "valor": 100.00
       }
     ]
   }'
@@ -126,11 +126,7 @@ curl -X POST http://localhost:5000/api/v1/pedidos \
 ```json
 {
   "id": 1,
-  "pedidoExternoId": 12345,
-  "status": "Processado",
-  "valorTotal": 100.00,
-  "imposto": 30.00,
-  "criadoEm": "2026-02-05T12:00:00Z"
+  "status": "Processado"
 }
 ```
 
@@ -142,14 +138,14 @@ curl -X POST http://localhost:5000/api/v1/pedidos/lote \
   -d '{
     "pedidos": [
       {
-        "pedidoExternoId": 20001,
+        "pedidoId": 20001,
         "clienteId": 100,
-        "itens": [{ "produtoId": 1, "quantidade": 1, "valorUnitario": 100.00 }]
+        "itens": [{ "produtoId": 1, "quantidade": 1, "valor": 100.00 }]
       },
       {
-        "pedidoExternoId": 20002,
+        "pedidoId": 20002,
         "clienteId": 101,
-        "itens": [{ "produtoId": 2, "quantidade": 2, "valorUnitario": 50.00 }]
+        "itens": [{ "produtoId": 2, "quantidade": 2, "valor": 50.00 }]
       }
     ]
   }'
@@ -176,12 +172,13 @@ curl "http://localhost:5000/api/v1/pedidos?pagina=1&tamanhoPagina=10&status=Proc
   "itens": [
     {
       "id": 1,
-      "pedidoExternoId": 12345,
+      "pedidoId": 12345,
       "clienteId": 100,
-      "status": "Processado",
-      "valorTotal": 100.00,
       "imposto": 30.00,
-      "criadoEm": "2026-02-05T12:00:00Z"
+      "itens": [
+        { "produtoId": 1, "quantidade": 2, "valor": 100.00 }
+      ],
+      "status": "Processado"
     }
   ],
   "pagina": 1,
@@ -220,7 +217,7 @@ FeatureFlags__UsarReformaTributaria=true
 
 Os pedidos processados são disponibilizados para o Sistema B via mensageria (RabbitMQ).
 
-Após o processamento, um evento `PedidoProcessadoEvento` é publicado na fila:
+Após o processamento, um evento `PedidoProcessadoEvento` é publicado no exchange:
 
 ```json
 {
@@ -229,10 +226,11 @@ Após o processamento, um evento `PedidoProcessadoEvento` é publicado na fila:
   "clienteId": 100,
   "valorTotal": 100.00,
   "imposto": 30.00,
-  "status": "Processado",
   "processadoEm": "2026-02-05T12:00:00Z"
 }
 ```
+
+O exchange no RabbitMQ é: `Pedidos.Application.Events:PedidoProcessadoEvento`
 
 O Sistema B deve consumir esta fila para receber os pedidos.
 
@@ -261,9 +259,9 @@ dotnet test tests/Pedidos.IntegrationTests
 
 | Tipo | Quantidade | Descrição |
 |------|------------|-----------|
-| Unitários | 64 | Domain + Application |
+| Unitários | 61 | Domain + Application |
 | Integração | 13 | API + Testcontainers |
-| **Total** | **77** | |
+| **Total** | **74** | |
 
 ## Estrutura do Projeto
 
@@ -342,10 +340,10 @@ A aplicação utiliza **Serilog** para logging estruturado com as seguintes feat
 {
   "Timestamp": "2026-02-05T12:00:00.000Z",
   "Level": "Information",
-  "Message": "Pedido criado com sucesso",
+  "Message": "Pedido criado com sucesso. Id: 1, Imposto: 30.00",
   "Properties": {
-    "PedidoId": 1,
-    "PedidoExternoId": 12345,
+    "Id": 1,
+    "Imposto": 30.00,
     "RequestId": "abc-123",
     "SourceContext": "Pedidos.Application.Commands.CriarPedido.CriarPedidoHandler"
   }

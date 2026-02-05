@@ -7,9 +7,9 @@ public sealed class CriarPedidoCommandValidator : AbstractValidator<CriarPedidoC
 {
     public CriarPedidoCommandValidator()
     {
-        RuleFor(x => x.PedidoExternoId)
+        RuleFor(x => x.PedidoId)
             .GreaterThan(0)
-            .WithMessage("PedidoExternoId deve ser maior que zero");
+            .WithMessage("PedidoId deve ser maior que zero");
 
         RuleFor(x => x.ClienteId)
             .GreaterThan(0)

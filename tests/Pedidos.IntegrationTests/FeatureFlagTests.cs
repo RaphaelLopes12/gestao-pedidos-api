@@ -108,9 +108,9 @@ public class FeatureFlagTests : IAsyncLifetime
         var client = factory.CreateClient();
 
         var request = new CriarPedidoRequest(
-            PedidoExternoId: 80001,
+            PedidoId: 80001,
             ClienteId: 100,
-            Itens: [new ItemPedidoRequest(1, 1, 100m)]);
+            Itens: [new ItemPedidoRequest(1, 1, 100m)]); // valor = 100 (total da linha)
 
         var response = await client.PostAsJsonAsync("/api/v1/pedidos", request);
 
@@ -118,8 +118,12 @@ public class FeatureFlagTests : IAsyncLifetime
 
         var resultado = await response.Content.ReadFromJsonAsync<CriarPedidoResponse>();
         resultado.Should().NotBeNull();
-        resultado!.ValorTotal.Should().Be(100m);
-        resultado.Imposto.Should().Be(30m);
+        resultado!.Status.Should().Be("Processado");
+
+        // Verificar imposto via GET
+        var getResponse = await client.GetAsync($"/api/v1/pedidos/{resultado.Id}");
+        var pedido = await getResponse.Content.ReadFromJsonAsync<PedidoResponse>();
+        pedido!.Imposto.Should().Be(30m); // 100 * 0.3 = 30
     }
 
     [Fact]
@@ -129,9 +133,9 @@ public class FeatureFlagTests : IAsyncLifetime
         var client = factory.CreateClient();
 
         var request = new CriarPedidoRequest(
-            PedidoExternoId: 80002,
+            PedidoId: 80002,
             ClienteId: 100,
-            Itens: [new ItemPedidoRequest(1, 1, 100m)]);
+            Itens: [new ItemPedidoRequest(1, 1, 100m)]); // valor = 100 (total da linha)
 
         var response = await client.PostAsJsonAsync("/api/v1/pedidos", request);
 
@@ -139,7 +143,11 @@ public class FeatureFlagTests : IAsyncLifetime
 
         var resultado = await response.Content.ReadFromJsonAsync<CriarPedidoResponse>();
         resultado.Should().NotBeNull();
-        resultado!.ValorTotal.Should().Be(100m);
-        resultado.Imposto.Should().Be(20m);
+        resultado!.Status.Should().Be("Processado");
+
+        // Verificar imposto via GET
+        var getResponse = await client.GetAsync($"/api/v1/pedidos/{resultado.Id}");
+        var pedido = await getResponse.Content.ReadFromJsonAsync<PedidoResponse>();
+        pedido!.Imposto.Should().Be(20m); // 100 * 0.2 = 20
     }
 }

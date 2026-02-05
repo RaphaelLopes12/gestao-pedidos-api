@@ -33,24 +33,24 @@ public sealed class CriarPedidoHandler : IRequestHandler<CriarPedidoCommand, Res
         CancellationToken cancellationToken)
     {
         _logger.LogInformation(
-            "Iniciando criação de pedido. PedidoExternoId: {PedidoExternoId}, ClienteId: {ClienteId}",
-            command.PedidoExternoId,
+            "Iniciando criação de pedido. PedidoId: {PedidoId}, ClienteId: {ClienteId}",
+            command.PedidoId,
             command.ClienteId);
 
         var pedidoExistente = await _repositorio.ObterPorPedidoExternoIdAsync(
-            command.PedidoExternoId,
+            command.PedidoId,
             cancellationToken);
 
         if (pedidoExistente is not null)
         {
             _logger.LogWarning(
-                "Pedido duplicado. PedidoExternoId: {PedidoExternoId} já existe",
-                command.PedidoExternoId);
-            return Resultado<CriarPedidoResponse>.Falha("Pedido já existe com este PedidoExternoId");
+                "Pedido duplicado. PedidoId: {PedidoId} já existe",
+                command.PedidoId);
+            return Resultado<CriarPedidoResponse>.Falha("Pedido já existe com este PedidoId");
         }
 
         var itensResultados = command.Itens
-            .Select(i => ItemPedido.Criar(i.ProdutoId, i.Quantidade, i.ValorUnitario))
+            .Select(i => ItemPedido.Criar(i.ProdutoId, i.Quantidade, i.Valor))
             .ToList();
 
         var itemComErro = itensResultados.FirstOrDefault(r => r.Falhou);
@@ -62,7 +62,7 @@ public sealed class CriarPedidoHandler : IRequestHandler<CriarPedidoCommand, Res
 
         var itens = itensResultados.Select(r => r.Valor!).ToList();
 
-        var pedidoResultado = Pedido.Criar(command.PedidoExternoId, command.ClienteId, itens);
+        var pedidoResultado = Pedido.Criar(command.PedidoId, command.ClienteId, itens);
 
         if (pedidoResultado.Falhou)
         {
@@ -78,7 +78,7 @@ public sealed class CriarPedidoHandler : IRequestHandler<CriarPedidoCommand, Res
         var pedidoId = await _repositorio.AdicionarAsync(pedido, cancellationToken);
 
         _logger.LogInformation(
-            "Pedido criado com sucesso. Id: {PedidoId}, Imposto: {Imposto}",
+            "Pedido criado com sucesso. Id: {Id}, Imposto: {Imposto}",
             pedidoId,
             imposto);
 
@@ -93,18 +93,24 @@ public sealed class CriarPedidoHandler : IRequestHandler<CriarPedidoCommand, Res
             pedido.Imposto,
             pedido.ProcessadoEm!.Value);
 
-        await _publicador.PublicarPedidoProcessadoAsync(evento, cancellationToken);
+        try
+        {
+            await _publicador.PublicarPedidoProcessadoAsync(evento, cancellationToken);
 
-        _logger.LogInformation(
-            "Pedido processado e publicado para Sistema B. PedidoId: {PedidoId}",
-            pedidoId);
+            _logger.LogInformation(
+                "Pedido processado e publicado para Sistema B. Id: {Id}",
+                pedidoId);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(
+                ex,
+                "Falha ao publicar evento para Sistema B. O pedido foi criado. Id: {Id}",
+                pedidoId);
+        }
 
         return Resultado<CriarPedidoResponse>.Ok(new CriarPedidoResponse(
             pedidoId,
-            pedido.PedidoExternoId,
-            pedido.Status.ToString(),
-            pedido.ValorTotal,
-            pedido.Imposto,
-            pedido.CriadoEm));
+            pedido.Status.ToString()));
     }
 }

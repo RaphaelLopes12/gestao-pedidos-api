@@ -35,23 +35,18 @@ public sealed class ObterPedidoHandler : IRequestHandler<ObterPedidoQuery, Resul
 
         var itensResponse = pedido.Itens
             .Select(i => new ItemPedidoResponse(
-                i.Id,
                 i.ProdutoId,
                 i.Quantidade,
-                i.ValorUnitario,
-                i.ValorTotal))
+                i.Valor))
             .ToList();
 
         var response = new PedidoResponse(
             pedido.Id,
             pedido.PedidoExternoId,
             pedido.ClienteId,
-            pedido.Status.ToString(),
-            pedido.ValorTotal,
             pedido.Imposto,
-            pedido.CriadoEm,
-            pedido.ProcessadoEm,
-            itensResponse);
+            itensResponse,
+            pedido.Status.ToString());
 
         _logger.LogInformation("Pedido encontrado. Id: {PedidoId}, Status: {Status}", query.PedidoId, pedido.Status);
 

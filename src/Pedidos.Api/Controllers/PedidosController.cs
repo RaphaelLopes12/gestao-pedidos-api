@@ -49,11 +49,11 @@ public sealed class PedidosController : ControllerBase
         CancellationToken cancellationToken)
     {
         _logger.LogInformation(
-            "Recebida requisição para criar pedido. PedidoExternoId: {PedidoExternoId}",
-            request.PedidoExternoId);
+            "Recebida requisição para criar pedido. PedidoId: {PedidoId}",
+            request.PedidoId);
 
         var command = new CriarPedidoCommand(
-            request.PedidoExternoId,
+            request.PedidoId,
             request.ClienteId,
             request.Itens);
 

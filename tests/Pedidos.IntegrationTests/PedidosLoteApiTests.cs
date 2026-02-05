@@ -23,7 +23,7 @@ public class PedidosLoteApiTests
         var request = new CriarPedidosLoteRequest(
         [
             new CriarPedidoRequest(50001, 100, [new ItemPedidoRequest(1, 1, 100m)]),
-            new CriarPedidoRequest(50002, 101, [new ItemPedidoRequest(2, 2, 50m)])
+            new CriarPedidoRequest(50002, 101, [new ItemPedidoRequest(2, 2, 100m)])
         ]);
 
         var response = await _client.PostAsJsonAsync("/api/v1/pedidos/lote", request);
@@ -61,7 +61,7 @@ public class PedidosLoteApiTests
     }
 
     [Fact]
-    public async Task CriarLote_ComPedidosExternoIdDuplicados_DevePersistirApenasUmaVez()
+    public async Task CriarLote_ComPedidoIdDuplicados_DevePersistirApenasUmaVez()
     {
         var request = new CriarPedidosLoteRequest(
         [
